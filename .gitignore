@@ -1,0 +1,21 @@
+*.pyc
+__pycache__
+.DS_store
+db.sqlite3
+output
+# C_calc_script.py
+Bre_30_knop.json
+
+bsdesign
+env
+.env
+.vscode
+cache/*
+!cache/.gitkeep
+
+logs/*
+!logs/.gitkeep
+
+staticfiles
+ttt.txt
+security.txt

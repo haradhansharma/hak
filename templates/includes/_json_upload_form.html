@@ -1,0 +1,57 @@
+<form  
+hx-target="#upload_form_wrapper" 
+hx-swap="innerHTML" 
+method="POST" 
+hx-indicator="#spinner" 
+hx-post="{% url 'common:common_landing' %}" 
+enctype="multipart/form-data" 
+hx-encoding="multipart/form-data">
+    {% csrf_token %}
+    <div class="row">
+        <!-- Start: file upload form -->
+        <div class="col-12 col-md-9 mb-2 mb-md-0 px-md-0">     
+            {{ form.geojson_file }}                           
+        </div>
+        
+        <!-- End: file upload form -->
+        <!-- Start: File upload button -->
+        <div class="col-12 col-md-3 px-md-1">
+            <input class="btn btn-lg btn-primary w-100" type="submit">
+        </div>
+        <!-- End: File upload button -->
+
+        
+
+        <!-- Start: Instructions -->
+        <div class="col-12 px-2 px-md-0 py-2">
+
+            {% if error %}
+            <div class="alert alert-danger text-start" role="alert">
+                {{ error }}
+            </div> 
+            {% endif %}
+
+            {% if form.non_field_errors or form.geojson_file.errors %}
+            <div class="alert alert-danger text-start" role="alert">
+                {{ form.non_field_errors }}
+                {{ form.geojson_file.errors }}
+            </div>   
+            {% endif %}                        
+            
+            <p>Json data must be formatted as here:&nbsp;<a class="link-secondary" href="{% url 'common:example_json' %}" target="_blank" rel="nofollow">Example</a></p>
+        </div><!-- End: Instructions -->
+
+        <!-- Start: Working Spiner -->
+        <div id="spinner" class="col-12 px-2 px-md-0 py-2 htmx-indicator">
+            <span class="spinner-border text-warning" role="status"></span>
+        </div>
+        <!-- End: Working Spiner -->
+        <!-- Start: Download button when file ready -->
+        {% if download_path %}     
+            <div class="col-12 px-2 px-md-0 py-2">
+                <a class="btn btn-success btn-lg" role="button" href="{{download_path}}" target="_blank" rel="nofollow" classes="add show:600ms">Download</a>
+            </div>
+        {% endif %}
+        <!-- End: Download button when file ready -->
+    </div>
+</form>

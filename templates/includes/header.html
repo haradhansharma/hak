@@ -1,0 +1,17 @@
+{% load static %}
+
+<header class="text-center text-white masthead" style="background:url({% static 'assets/img/bg-masthead.jpg' %})no-repeat center center;background-size:cover;">
+    <div class="overlay"></div>
+    <div class="container">
+        <div class="row">
+            <div class="col-xl-9 mx-auto position-relative">
+                <h1 class="mb-5">Upload JSON File Here</h1>
+            </div>
+            <div id="upload_form_wrapper" class="col-md-10 col-lg-8 col-xl-7 mx-auto position-relative">
+
+                {% include "includes/_json_upload_form.html" %}
+                
+            </div>
+        </div>
+    </div>
+</header>
