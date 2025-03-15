@@ -10,5 +10,4 @@ This allows the User model to be managed through the Django admin site.
 
 class UserAdmin(UserAdmin):
     pass
-
 admin.site.register(User, UserAdmin)

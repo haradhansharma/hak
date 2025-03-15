@@ -16,6 +16,9 @@ if not SECRET_KEY:
 
 DEBUG = env.bool("HAK_DEBUG", default=False)
 
+if not DEBUG:
+    PREPEND_WWW = True
+
 if DEBUG:
     ALLOWED_HOSTS = ["*"]
     CSRF_TRUSTED_ORIGINS = env("HAK_CSRF_TRUSTED_ORIGINS_LOCAL").split(",")
@@ -24,8 +27,6 @@ else:
     CSRF_TRUSTED_ORIGINS = env("HAK_CSRF_TRUSTED_ORIGINS_LIVE").split(",")
     
 SITE_ID = 1
-
-# Application definition
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -36,6 +37,7 @@ INSTALLED_APPS = [
     "whitenoise.runserver_nostatic",
     'django.contrib.staticfiles',
     "django.contrib.sites",
+    'django.contrib.sitemaps',
     "django.contrib.humanize",
     
     "account",
@@ -94,6 +96,7 @@ if DEBUG:
             },
         }
     }
+    
 else:
     DATABASES = {
         "default": {

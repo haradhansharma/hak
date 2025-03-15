@@ -1,23 +1,25 @@
+{% load tz %}
 <footer class="bg-light footer">
     <div class="container">
         <div class="row">
             <div class="col-lg-6 text-center text-lg-start my-auto h-100">
                 <ul class="list-inline mb-2">
-                    <li class="list-inline-item"><a href="#">About</a></li>
+                    <li class="list-inline-item"><a href="#" rel="nofollow">About</a></li>
                     <li class="list-inline-item"><span>⋅</span></li>
-                    <li class="list-inline-item"><a href="#">Contact</a></li>
+                    <li class="list-inline-item"><a href="#" rel="nofollow">Contact</a></li>
                     <li class="list-inline-item"><span>⋅</span></li>
-                    <li class="list-inline-item"><a href="#">Terms of &nbsp;Use</a></li>
+                    <li class="list-inline-item"><a href="#" rel="nofollow">Terms of &nbsp;Use</a></li>
                     <li class="list-inline-item"><span>⋅</span></li>
-                    <li class="list-inline-item"><a href="#">Privacy Policy</a></li>
+                    <li class="list-inline-item"><a href="#" rel="nofollow">Privacy Policy</a></li>
                 </ul>
-                <p class="text-muted small mb-4 mb-lg-0">© Brand 2025. All Rights Reserved.</p>
+                <p class="text-muted small mb-4 mb-lg-0">© {{ site_data.name }} {% now "Y" %}. All Rights Reserved.</p>
+                <p>Web Integrated By <a href= "mailto: haradhan.sharma@gmail.com"> Haradhan Sharma </a> at <a target="_blank" href="https://www.upwork.com/freelancers/~0166a448a65b1641fb">Upwork</a> </p>
             </div>
             <div class="col-lg-6 text-center text-lg-end my-auto h-100">
                 <ul class="list-inline mb-0">
-                    <li class="list-inline-item"><a href="#"><i class="fa fa-facebook fa-2x fa-fw"></i></a></li>
-                    <li class="list-inline-item"><a href="#"><i class="fa fa-twitter fa-2x fa-fw"></i></a></li>
-                    <li class="list-inline-item"><a href="#"><i class="fa fa-instagram fa-2x fa-fw"></i></a></li>
+                    <li class="list-inline-item"><a href="#" rel="nofollow"><i class="fa fa-facebook fa-2x fa-fw"></i></a></li>
+                    <li class="list-inline-item"><a href="#" rel="nofollow"><i class="fa fa-twitter fa-2x fa-fw"></i></a></li>
+                    <li class="list-inline-item"><a href="#" rel="nofollow"><i class="fa fa-instagram fa-2x fa-fw"></i></a></li>
                 </ul>
             </div>
         </div>

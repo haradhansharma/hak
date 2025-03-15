@@ -1,0 +1,19 @@
+# robots.txt file
+# Allow all web crawlers full access to your website
+User-agent: *
+Disallow:
+
+# Block specific web crawlers from a certain directory
+User-agent: BadBot
+Disallow: /private/
+
+# Allow specific bot (like Googlebot) full access
+User-agent: Googlebot
+Disallow:
+
+# Block all crawlers from accessing the /admin/ section
+User-agent: *
+Disallow: /admin/
+
+# Specify the location of your sitemap
+Sitemap: https://www.ccalcx.com/sitemap.xml

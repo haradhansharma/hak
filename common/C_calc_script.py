@@ -12,13 +12,18 @@ import shutil
 import geopandas as gpd
 import pandas as pd
 import numpy as np
-# [haradhan] ================
-# Should run without GUI mode
+
+
+# [haradhan] Start
+
+# Should run on non GUI mode
 import matplotlib
 matplotlib.use("Agg")
 from django.core.cache import caches
 from django.utils.crypto import get_random_string
-# [haradhan] ================
+
+# [haradhan] End
+
 import matplotlib.pyplot as plt
 import folium
 from shapely.geometry import LineString
@@ -59,7 +64,7 @@ EL_LOSS_HOTEL = EFF_CABLE * EFF_BATTERY_DIS * EL_MISC_LOSS
 DELTA_SPEED_THRESHOLDS = [2, 4]  # in knots
 MULTIPLICATION_FACTORS = [2, 2.5]
 
-# [haradhan] =========
+# [haradhan] Start
 
 def setup_script_logger(log_file_name, log_directory, session_id=None):
     log_path = os.path.join(log_directory, log_file_name)
@@ -106,30 +111,29 @@ class DjangoCacheBackend(requests_cache.backends.BaseCache):
 
 
 def get_user_cache(session_id, output_dir): 
-    # cache_file = os.path.join(output_dir, f".cache_{session_id}")    
+    
     backend = DjangoCacheBackend(session_id=session_id)
-    # redis cache could be beneficial here, cloud pnale provid it. 
-    # so if user based increase will use celery and redis cache
     session = requests_cache.CachedSession(backend=backend, expire_after=3600)
 
     return session
 
 def get_openmeteo_client(session_id, output_dir):
+    
     user_cache = get_user_cache(session_id, output_dir)
     retry_session = retry(user_cache, retries=7, backoff_factor=0.2)
+    
     return openmeteo_requests.Client(session=retry_session)
 
 def cleanup_logging(session_id=None):
     logger_name = "script_logger" if session_id is None else f"script_logger_{session_id}"
     logger = d_logging.getLogger(logger_name)
-    logger.info("Processing complete. Cleaning up log handlers.")
-    
-    # Copy the list of handlers to avoid modifying the list while iterating
+    logger.info("Processing complete. Cleaning up log handlers.")    
+
     for handler in logger.handlers[:]:
         handler.close()
         logger.removeHandler(handler)
 
-# [haradhan] =================    
+# [haradhan] End
 
 
 # =============================================================================
@@ -140,12 +144,14 @@ RETRY_SESSION = retry(CACHE_SESSION, retries=5, backoff_factor=0.2)
 OPENMETEO_CLIENT = openmeteo_requests.Client(session=RETRY_SESSION)
 
 
-class Analysis:
-    # [haradhan] === converted to class to work efficiently
+class Analysis: # [haradhan] === converted to class to work efficiently
+    
+    # [haradhan] Start    
     def __init__(self, session_id = None, media_path = None):
         self.session_id = session_id
         self.media_path = media_path     
         self.logging = None
+    # [haradhan] End    
 
 
     # =============================================================================
@@ -182,13 +188,14 @@ class Analysis:
         try:
             traffic_data = gpd.read_file(file_path)
         except Exception as e:
-            # [haradhan] accessing self modified log for this session
+            # [haradhan] accessing self modified logger for this session
             self.logging.exception(f"Could not read file: {e}")
-            # [haradhan] ====================
+            
+            # [haradhan] Start
             # can crush the web server
-            # sys.exit(1)
+            # sys.exit(1) 
             return {}
-            # [haradhan] ====================
+            # [haradhan] End
             
         traffic_data['msgtime'] = pd.to_datetime(traffic_data['msgtime']) + timedelta(hours=timezone)
         traffic_data = traffic_data.sort_values('msgtime').reset_index(drop=True)
@@ -229,12 +236,13 @@ class Analysis:
     # =============================================================================
     # Weather and Ocean Current Data Functions
     # =============================================================================
-    # [haradhan]==========
+    # [haradhan] Start
+    
     # passing session_id, output_dir
     # def get_weather_data(lat: float, lon: float, date_time: pd.Timestamp) -> tuple:
    
     def get_weather_data(self, lat: float, lon: float, date_time: pd.Timestamp, session_id=None, output_dir = None) -> tuple:
-    # [haradhan]==========
+    # [haradhan] End
     
         """
         Retrieve wind speed and wind direction from the Open-Meteo API.
@@ -250,15 +258,18 @@ class Analysis:
             "timezone": "UTC"
         }
         try:
-            # [haradhan]===========
+            # [haradhan] Start
+            
             if session_id is not None and output_dir is not None:            
                 omt = get_openmeteo_client(session_id, output_dir)
                 responses = omt.weather_api(url, params=params)
             else:
-                responses = OPENMETEO_CLIENT.weather_api(url, params=params)            
-            # [haradhan]===========        
-        
+                responses = OPENMETEO_CLIENT.weather_api(url, params=params)    
             # responses = OPENMETEO_CLIENT.weather_api(url, params=params)
+            
+            # [haradhan] End     
+            
+            
             response = responses[0]
             hourly = response.Hourly()
             times = pd.to_datetime(hourly.Time(), unit='s', utc=True)
@@ -274,14 +285,15 @@ class Analysis:
             weather_info = weather_df.iloc[idx]
             return weather_info['wind_speed_10m'], weather_info['wind_direction_10m']
         except Exception as e:
-            # [haradhan] accessing self modified log for this session
+            # [haradhan] accessing self modified logger for this session
             self.logging.exception(f"Error retrieving weather data: {e}")
             return 0.0, 0.0
-    # [haradhan]==========
+        
+    # [haradhan] Start
     # def get_wave_data(lat: float, lon: float, date_time: pd.Timestamp) -> tuple:
    
     def get_wave_data(self, lat: float, lon: float, date_time: pd.Timestamp, session_id=None, output_dir=None) -> tuple:
-        # [haradhan]==========
+    # [haradhan] End
         
         """
         Retrieve wave height, wave direction, ocean current speed, and ocean current direction from the Open-Meteo Marine API.
@@ -297,15 +309,17 @@ class Analysis:
             "timezone": "UTC"
         }
         try:
-            # [haradhan]===========
+            # [haradhan] Start
+            
             if session_id is not None and output_dir is not None:            
                 omt = get_openmeteo_client(session_id, output_dir)
                 responses = omt.weather_api(url, params=params)
             else:
-                responses = OPENMETEO_CLIENT.weather_api(url, params=params)            
-            # [haradhan]===========
-            
+                responses = OPENMETEO_CLIENT.weather_api(url, params=params)        
             # responses = OPENMETEO_CLIENT.weather_api(url, params=params)
+                    
+            # [haradhan] End
+            
             response = responses[0]
             hourly = response.Hourly()
             times = pd.to_datetime(hourly.Time(), unit='s', utc=True)
@@ -326,7 +340,7 @@ class Analysis:
             return (wave_info['wave_height'], wave_info['wave_direction'],
                     wave_info['ocean_current_velocity'], wave_info['ocean_current_direction'])
         except Exception as e:
-            # [haradhan] accessing self modified log for this session
+            # [haradhan] accessing self modified logger for this session
             self.logging.exception(f"Error retrieving wave data: {e}")
             return 0.0, 0.0, 0.0, 0.0
 
@@ -334,11 +348,12 @@ class Analysis:
     # =============================================================================
     # Energy Consumption Calculation Function
     # =============================================================================
-    # [haradhan]===========
-    # def calculate_energy_consumption(trips: list) -> dict:
-   
+    # [haradhan] Start
+    
+    # def calculate_energy_consumption(trips: list) -> dict:   
     def calculate_energy_consumption(self, trips: list, session_id=None, output_dir=None) -> dict:
-    # [haradhan]===========    
+        
+    # [haradhan] End  
         """
         Calculate energy consumption and battery level for each trip.
         """
@@ -369,7 +384,8 @@ class Analysis:
             trip_duration_seconds = (end_time_trip - start_time_trip).total_seconds()
             trip_duration_minutes = int(trip_duration_seconds // 60)
             trip_duration_seconds_remaining = int(trip_duration_seconds % 60)
-            # [haradhan] accessing self modified log for this session
+            
+            # [haradhan] accessing self modified logger for this session
             self.logging.info(f"Trip {i} (Duration: {trip_duration_minutes}:{trip_duration_seconds_remaining:02d} mm:ss):")
 
             previous_speed = 0
@@ -406,14 +422,18 @@ class Analysis:
                 # Retrieve weather and wave data for the current timestamp and location
                 # wind_speed, wind_direction = get_weather_data(lat, lon, timestamp)
                 # wave_height, wave_direction, ocean_current_velocity, ocean_current_direction = get_wave_data(lat, lon, timestamp)
-                # [haradhan]==========
+                
+                # [haradhan] Start
+                
                 if session_id is not None and output_dir is not None:
                     wind_speed, wind_direction = self.get_weather_data(lat, lon, timestamp, session_id, output_dir)
                     wave_height, wave_direction, ocean_current_velocity, ocean_current_direction = self.get_wave_data(lat, lon, timestamp, session_id, output_dir)
                 else:
+                    # original script
                     wind_speed, wind_direction = self.get_weather_data(lat, lon, timestamp)
                     wave_height, wave_direction, ocean_current_velocity, ocean_current_direction = self.get_wave_data(lat, lon, timestamp)
-                # [haradhan]==========
+                    
+                # [haradhan] End
                     
                     
                 
@@ -426,7 +446,7 @@ class Analysis:
                 ocean_current_direction_points.append(ocean_current_direction)
 
                 formatted_timestamp = timestamp.strftime('%Y-%m-%d %H:%M:%S')
-                # [haradhan] accessing self modified log for this session
+                # [haradhan] accessing self modified logger for this session, extra character (arrow) from this line ha been removed
                 self.logging.info(f"Time: {formatted_timestamp}, Speed: {speed:.2f} knots, Speed: {delta_speed:.2f} knots, Power: {power:.2f} kW, Time: {delta_time_sec:.2f} sec, Energy: {total_energy_segment:.4f} kWh")
                 previous_speed = speed
 
@@ -453,13 +473,14 @@ class Analysis:
             })
 
             average_speed = total_speed / num_points if num_points > 0 else 0
-            # [haradhan] accessing self modified log for this session
-            self.logging.info(f"Total energy consumption for Trip {i}: {total_energy:.4f} kWh (including hotel load)")
-            # [haradhan] accessing self modified log for this session
+            
+            # [haradhan] accessing self modified logger for this session
+            self.logging.info(f"Total energy consumption for Trip {i}: {total_energy:.4f} kWh (including hotel load)")          
             self.logging.info(f"Average speed for Trip {i}: {average_speed:.2f} knots")
+            
             battery_level = max(0, battery_level - total_energy)
             if battery_level == 0:
-                # [haradhan] accessing self modified log for this session
+                # [haradhan] accessing self modified logger for this session
                 self.logging.warning("Warning: Battery is empty!")
             battery_levels.append(battery_level)
             time_stamps.append(trip[-1][2])
@@ -475,20 +496,24 @@ class Analysis:
                     hotel_energy_rest = (HOTEL_LOAD_POWER_RESTING * charging_time_hours) / EL_LOSS_HOTEL
                     energy_charged = charging_power * charging_time_hours * EL_LOSS_PROP
                     battery_level = min(BATTERY_CAPACITY, battery_level + energy_charged - hotel_energy_rest)
-                    # [haradhan] accessing self modified log for this session
-                    self.logging.info(f"Charging at station {1 if i % 2 == 1 else 2} for {charging_time_hours:.2f} hours at {charging_power} kW, charged {energy_charged:.2f} kWh")
-                    # [haradhan] accessing self modified log for this session
+                    
+                    # [haradhan] accessing self modified logger for this session
+                    self.logging.info(f"Charging at station {1 if i % 2 == 1 else 2} for {charging_time_hours:.2f} hours at {charging_power} kW, charged {energy_charged:.2f} kWh")                    
                     self.logging.info(f"Hotel load consumed {hotel_energy_rest:.2f} kWh during rest period")
                 else:
                     hotel_energy_rest = (HOTEL_LOAD_POWER_RESTING * (rest_time_seconds / 3600)) / EL_LOSS_HOTEL
                     battery_level = max(0, battery_level - hotel_energy_rest)
                     if battery_level == 0:
-                        # [haradhan] accessing self modified log for this session
+                        
+                        # [haradhan] accessing self modified logger for this session
                         self.logging.warning("Warning: Battery is empty during rest period!")
+                        
                 battery_levels.append(battery_level)
                 time_stamps.append(start_time_next_trip)
-                # [haradhan] accessing self modified log for this session
+                
+                # [haradhan] accessing self modified logger for this session
                 self.logging.info(f"Battery level after Trip {i}: {battery_level:.2f} kWh\n")
+                
         return {
             'battery_levels': battery_levels,
             'time_stamps': time_stamps,
@@ -506,10 +531,12 @@ class Analysis:
         """
         Plot battery levels over time and save the chart as a PNG file.
         """
-        # [haradhan]======================
+        # [haradhan] Start
+        
         # plt.figure(figsize=(12, 6))
         fig = plt.figure(figsize=(12, 6))
-        # [haradhan]======================
+        # [haradhan] End
+        
         plt.plot(time_stamps, battery_levels[1:], marker='o')
         plt.gcf().autofmt_xdate()
         plt.xlabel('Time')
@@ -518,12 +545,13 @@ class Analysis:
         plt.grid(True)
         output_path = os.path.join(output_dir, "battery_levels.png")
         plt.savefig(output_path)
-        # [haradhan]======================
+        
+        # [haradhan] Start
         # plt.close()
         plt.close(fig)
-        # [haradhan]======================
+        # [haradhan] End
         
-        # [haradhan] accessing self modified log for this session
+        # [haradhan] accessing self modified logger for this session
         self.logging.info(f"Battery level plot saved as {output_path}")
         
    
@@ -532,9 +560,12 @@ class Analysis:
         Plot a specific trip on a map with weather and ocean current data and save it as an HTML file.
         """
         if trip_number < 1 or trip_number > len(trips):
-            # [haradhan] accessing self modified log for this session
+            
+            # [haradhan] accessing self modified logger for this session
             self.logging.error(f"Trip {trip_number} is out of range.")
+            
             return
+        
         trip_indices = [pt[0] for pt in trips[trip_number - 1]]
         trip_data = traffic_data.iloc[trip_indices]
         route = LineString(zip(trip_data['lon'], trip_data['lat']))
@@ -624,7 +655,8 @@ class Analysis:
         m.get_root().html.add_child(folium.Element(legend_html))
         output_file = os.path.join(output_dir, f"trip_{trip_number}_map.html")
         m.save(output_file)
-        # [haradhan] accessing self modified log for this session
+        
+        # [haradhan] accessing self modified logger for this session
         self.logging.info(f"Trip {trip_number} map saved as {output_file}")
         
 
@@ -633,17 +665,18 @@ class Analysis:
         Plot cumulative energy consumption for a trip and save as a PNG file.
         """
         if trip_number < 1 or trip_number > len(trip_energy_data):
-            # [haradhan] accessing self modified log for this session
+            # [haradhan] accessing self modified logger for this session
             self.logging.error(f"Trip {trip_number} is out of range.")
             return
         trip_data = trip_energy_data[trip_number - 1]
         time_points = trip_data['time_points']
         energy_points = trip_data['energy_points']
         cumulative_energy = np.cumsum(energy_points)
-        # [haradhan]======================
+        
+        # [haradhan] Start
         # plt.figure(figsize=(12, 6))
         fig = plt.figure(figsize=(12, 6))
-        # [haradhan]======================
+        # [haradhan] End
         
         
         plt.plot(time_points, cumulative_energy, marker='o')
@@ -654,12 +687,13 @@ class Analysis:
         plt.grid(True)
         output_path = os.path.join(output_dir, f"trip_{trip_number}_energy.png")
         plt.savefig(output_path)
-        # [haradhan]======================    
+        
+        # [haradhan] Start
         # plt.close()
         plt.close(fig)
-        # [haradhan]======================    
+        # [haradhan] End
         
-        # [haradhan] accessing self modified log for this session
+        # [haradhan] accessing self modified logger for this session
         self.logging.info(f"Energy consumption plot for Trip {trip_number} saved as {output_path}")
 
 
@@ -669,16 +703,20 @@ class Analysis:
         """
         
         if trip_number < 1 or trip_number > len(trip_speed_data):
-            # [haradhan] accessing self modified log for this session
+            
+            # [haradhan] accessing self modified logger for this session
             self.logging.error(f"Trip {trip_number} is out of range.")
+            
             return
+        
         trip_data = trip_speed_data[trip_number - 1]
         time_points = trip_data['time_points']
         speed_points = trip_data['speed_points']
-        # [haradhan]======================    
+        
+        # [haradhan] Start 
         # plt.figure(figsize=(12, 6))
         fig = plt.figure(figsize=(12, 6))
-        # [haradhan]======================    
+        # [haradhan] End
         
         plt.plot(time_points, speed_points, marker='o')
         plt.gcf().autofmt_xdate()
@@ -688,42 +726,46 @@ class Analysis:
         plt.grid(True)
         output_path = os.path.join(output_dir, f"trip_{trip_number}_speed.png")
         plt.savefig(output_path)
-        # [haradhan]======================        
+        
+        # [haradhan] Start      
         # plt.close()
         plt.close(fig)    
-        # [haradhan]======================    
+        # [haradhan] End
         
-        # [haradhan] accessing self modified log for this session
+        # [haradhan] accessing self modified logger for this session
         self.logging.info(f"Speed plot for Trip {trip_number} saved as {output_path}")
 
 
     # =============================================================================
     # Main Function.
     # =============================================================================
-    # [haradhan] =========
+    
+    # [haradhan] Start
     # renamed main to use in the web
     # def main()
-    # [haradhan] =========
 
     def run_energy_analysis(self, file_path):
-        # cleanup_logging()   
-        # [haradhan] ==========
-    
-        # Transfered to __name__
-        # file_path = input("Enter the file path for the GeoJSON file: ").strip().strip('"')
+    # [haradhan] End       
         
+
+       
+    
+        # [haradhan] Transfered to __name__
+        # file_path = input("Enter the file path for the GeoJSON file: ").strip().strip('"')        
         
         if not os.path.exists(file_path):
             print("File not found. Exiting.")
-            # [haradhan] ====================
+            
+            # [haradhan] Start
             # can crush the web server
             # sys.exit(1)     
             return
-            # [haradhan] ====================
+            # [haradhan] End
             
             
             
-        # [haradhan] ====================
+        # [haradhan] Start
+        
         # if session id making it session specific
         if self.session_id is not None and self.media_path is not None:        
             # session specific for web use      
@@ -732,83 +774,69 @@ class Analysis:
             if os.path.exists(output_dir):
                 shutil.rmtree(output_dir)  
         
-        else:  
-        # [haradhan] ====================
-        # will keep its default behavior  
+        else:    
             output_dir = "output"
+        # output_dir = "output"          
+            
+        # [haradhan] End
             
         if not os.path.exists(output_dir):
             os.makedirs(output_dir, exist_ok=True)
             print(f"Created output directory: {output_dir}")        
         
         log_filename=os.path.join(output_dir, "output_log.log") if self.session_id is None else os.path.join(output_dir, f"output_log_{self.session_id}.log")    
-        # [haradhan] accessing self modified log for this session
+        # [haradhan] accessing self modified logger for this session
         self.logging = setup_script_logger(log_filename, output_dir, self.session_id)
         
-        # NO MORE NEEDED AS CONFIGURED SESSION SPECIFIC LOG CONVERTING SCRIPT TO CLASS
-        # Configure logging to use UTF-8 encoding and save log file in the output directory
-        # for handler in logging.root.handlers[:]:
-        #     logging.root.removeHandler(handler)
-        # logging.basicConfig(
-        #     level=logging.INFO,
-        #     format="%(asctime)s - %(levelname)s - %(message)s",
-        #     # [haradhan] =============
-        #     # renamed to .log and session specific
-        #     filename=os.path.join(output_dir, "output_log.log") if session_id is None else os.path.join(output_dir, f"output_log_{session_id}.log"),
-        #     # [haradhan] =============
-        #     filemode="w",
-        #     encoding="utf-8"
-        # )
-        # # [haradhansharma] # console stream off in web mode
-        # if session_id is None:
-        #     console = logging.StreamHandler()
-        #     console.setLevel(logging.INFO)
-        #     console.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
-        #     logging.getLogger('').addHandler(console)
-
-        # [haradhan] accessing self modified log for this session
+        
+        # [haradhan] accessing self modified logger for this session
         self.logging.info(f"Starting processing with input file: {file_path}")
-        
-        
+                
         
         # Read and prepare data
-         # [haradhan] as script now under class so will access by self
+        # [haradhan] as script now under class so will access by self
         traffic_data = self.read_data(file_path, TIMEZONE)
         traffic_data['lon'] = traffic_data.geometry.x
         traffic_data['lat'] = traffic_data.geometry.y
         trips = Analysis.process_trips(traffic_data, SPEED_THRESHOLD)
         if not trips:
-            # [haradhan] accessing self modified log for this session
+            # [haradhan] accessing self modified logger for this session
             self.logging.error("No trips found with the current speed threshold.")
-            # [haradhan] ====================
+            
+            # [haradhan] Start
             # can crush the web server
             # sys.exit(1)
             return
-            # [haradhan] ====================
+            # [haradhan] End
         
         # Calculate energy consumption and battery levels
-        # [haradhan]==========
-        # results = calculate_energy_consumption(trips)
+        
+        # [haradhan] Start   
         if self.session_id is not None:
             results = self.calculate_energy_consumption(trips, self.session_id, output_dir)
         else:
             results = self.calculate_energy_consumption(trips)
-            
-        # [haradhan]==========
+        # results = calculate_energy_consumption(trips)    
+        # [haradhan] End
             
         
         # Save battery level plot
+        
         # [haradhan] as script now under class so will access by self
         self.plot_battery_levels(results['time_stamps'], results['battery_levels'], output_dir)
         
         # For each trip, save map, energy plot, and speed plot
         for i in range(1, len(trips) + 1):
-            # [haradhan] accessing self modified log for this session
+            
+            # [haradhan] accessing self modified logger for this session
             self.logging.info(f"Processing Trip {i}...")
-             # [haradhan] as script now under class so will access by self
+            
+            # [haradhan] Start 
+            # as script now under class so will access by self
             self.plot_trip_on_map(i, trips, traffic_data, results, output_dir)
             self.plot_energy_consumption(i, results['trip_energy_data'], output_dir)
             self.plot_speed_over_time(i, results['trip_speed_data'], output_dir)
+            # [haradhan] End
         
         # Create a map with all trips
         m = folium.Map(location=[traffic_data['lat'].mean(), traffic_data['lon'].mean()], zoom_start=12)
@@ -831,24 +859,24 @@ class Analysis:
         folium.LayerControl().add_to(m)
         all_trips_map = os.path.join(output_dir, "all_trips_map.html")
         m.save(all_trips_map)
-        # [haradhan] accessing self modified log for this session
+        
+        # [haradhan] accessing self modified logger for this session
         self.logging.info(f"Combined map with all trips saved as {all_trips_map}")
         
         
-        # [haradhan] =================
-        
-      
-        
+        # [haradhan] Start
         if self.session_id and self.media_path:    
             cleanup_logging(self.session_id)    
             return output_dir    
-        # [haradhan] =================
+        # [haradhan] End
 
 if __name__ == "__main__":
     # Ask the user for the file path (quotes around the path are allowed)
-    # [haradhan] ================
-    # Bringing here
+    # [haradhan] Start
+    # Bringing here from perevious main()
     file_path = input("Enter the file path for the GeoJSON file: ").strip().strip('"')
-    # [haradhan] ================
+    # [haradhan] End
+    
     # SAFE TO INACTIVE IN WEB MODE
+    # If want to run file independently just uncomment below
     # Analysis().run_energy_analysis(file_path)

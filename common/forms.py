@@ -3,7 +3,7 @@ import os
 
 def validate_file_size(file, max_size_mb=5):
     """Validate file size (default: 5MB limit)"""
-    max_size = max_size_mb * 1024 * 1024  # Convert MB to bytes
+    max_size = max_size_mb * 1024 * 1024
     if file.size > max_size:
         raise forms.ValidationError(f"File size should not exceed {max_size_mb}MB.")
 

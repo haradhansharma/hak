@@ -1,0 +1,6 @@
+# ads.txt file
+# this is a scalaton
+# Example of authorized ad sellers
+google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0
+appnexus.com, 12345, RESELLER, f08c47fec0942fa0
+openx.com, 67890, DIRECT, 324f8471-2f3c-4c7d-a13f-cf72c9a4aeb7
