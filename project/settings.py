@@ -16,9 +16,6 @@ if not SECRET_KEY:
 
 DEBUG = env.bool("HAK_DEBUG", default=False)
 
-if not DEBUG:
-    PREPEND_WWW = True
-
 if DEBUG:
     ALLOWED_HOSTS = ["*"]
     CSRF_TRUSTED_ORIGINS = env("HAK_CSRF_TRUSTED_ORIGINS_LOCAL").split(",")
